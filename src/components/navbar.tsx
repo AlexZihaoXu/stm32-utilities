@@ -31,7 +31,9 @@ export const Navbar = () => {
             color="foreground"
             href="/"
           >
-            <p className="font-bold text-inherit">STM32 Utilitis</p>
+            <p className="font-bold text-inherit">
+              STM32 <span className="text-primary">Utilities</span>
+            </p>
           </Link>
         </NavbarBrand>
 
