@@ -18,8 +18,10 @@ echo "✅ Docker found"
 echo "🔨 Building application..."
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing dependencies..."
-    yarn install
+    yarn install --frozen-lockfile || yarn install
 fi
+
+echo "📦 Building project..."
 yarn build
 
 # Stop and remove existing container if it exists
