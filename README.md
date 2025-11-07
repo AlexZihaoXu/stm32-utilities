@@ -1,17 +1,45 @@
-# Vite & HeroUI Template
+# STM32 Utilities
 
-This is a template for creating applications using Vite and HeroUI (v2).
+Professional tools and calculators for STM32 embedded development.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/vite-template)
+## Features
+
+- **PWM Calculator**: Generate optimized PWM configurations with automatic code generation
+  - Preset configurations: Servo Control, LED Dimming, Toggle Pin
+  - Multiple resolution options and naming conventions
+  - Header-only or .h/.c file generation
 
 ## Technologies Used
 
 - [Vite](https://vitejs.dev/guide/)
+- [React](https://react.dev)
 - [HeroUI](https://heroui.com)
 - [Tailwind CSS](https://tailwindcss.com)
-- [Tailwind Variants](https://tailwind-variants.org)
 - [TypeScript](https://www.typescriptlang.org)
-- [Framer Motion](https://www.framer.com/motion)
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+
+## Quick Start
+
+### Development
+
+```bash
+# Install dependencies
+yarn install
+
+# Start development server
+yarn dev
+```
+
+### Docker
+
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+The application will be available at `http://localhost:3000`
 
 ## How to Use
 

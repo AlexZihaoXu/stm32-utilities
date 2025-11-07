@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  stm32-utilities:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    container_name: stm32-utilities
