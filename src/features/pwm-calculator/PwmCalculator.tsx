@@ -106,6 +106,11 @@ export function PwmCalculator() {
                 pwmFreq={pwmFreq}
                 sysClock={sysClock}
                 selectedTimer={selectedTimer}
+                selectedPreset={selectedPreset}
+                servoMinAngle={servoMinAngle}
+                servoMaxAngle={servoMaxAngle}
+                servoInitialAngle={servoInitialAngle}
+                ledInitialBrightness={ledInitialBrightness}
             />
         </>
     );

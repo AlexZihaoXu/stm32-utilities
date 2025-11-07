@@ -39,7 +39,7 @@ interface UsePwmCalculatorReturn {
     setNamingConvention: (value: NamingConvention) => void;
 }
 
-const DEFAULT_COMPONENT_NAME = "PWM";
+const DEFAULT_COMPONENT_NAME = "Component";
 
 export const usePwmCalculator = (): UsePwmCalculatorReturn => {
     const [sysClock, setSysClock] = useState<number>(72);
@@ -61,7 +61,7 @@ export const usePwmCalculator = (): UsePwmCalculatorReturn => {
     const [togglePinFrequency, setTogglePinFrequency] = useState<number>(1);
 
     const [componentName, setComponentName] = useState<string>(DEFAULT_COMPONENT_NAME);
-    const [namingConvention, setNamingConvention] = useState<NamingConvention>("UPPERCASE");
+    const [namingConvention, setNamingConvention] = useState<NamingConvention>("PascalCase");
 
     const applyPreset = useCallback((preset: PresetKey) => {
         switch (preset) {

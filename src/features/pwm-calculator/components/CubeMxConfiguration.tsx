@@ -6,7 +6,7 @@ import { Card, CardBody } from "@heroui/card";
 import Editor from "@monaco-editor/react";
 import { Divider } from "@heroui/divider";
 import { createCodeTemplates } from "../utils";
-import { NamingConvention, ResolutionOption } from "../types";
+import { MaybePresetKey, NamingConvention, ResolutionOption } from "../types";
 import { useAppTheme } from "@/context/theme";
 
 interface CubeMxConfigurationProps {
@@ -21,6 +21,11 @@ interface CubeMxConfigurationProps {
     pwmFreq: number;
     sysClock: number;
     selectedTimer: string;
+    selectedPreset: MaybePresetKey;
+    servoMinAngle?: number;
+    servoMaxAngle?: number;
+    servoInitialAngle?: number;
+    ledInitialBrightness?: number;
 }
 
 const NAMING_OPTIONS: NamingConvention[] = ["UPPERCASE", "PascalCase", "camelCase", "snake_case"];
@@ -37,11 +42,51 @@ export function CubeMxConfiguration({
     pwmFreq,
     sysClock,
     selectedTimer,
+    selectedPreset,
+    servoMinAngle,
+    servoMaxAngle,
+    servoInitialAngle,
+    ledInitialBrightness,
 }: CubeMxConfigurationProps) {
     const { theme } = useAppTheme();
     const editorTheme = theme === "light" ? "vs" : "vs-dark";
 
     const templates = useMemo(() => {
+        // For toggle-pin preset, we don't need a selected resolution option
+        // We'll use default values for ARR and PSC
+        if (selectedPreset === "toggle-pin") {
+            const timerClock = sysClock * 1_000_000;
+            const targetCounts = timerClock / pwmFreq;
+            const maxARR = Math.pow(2, arrWidth) - 1;
+            
+            let psc = 0;
+            let arr = Math.round(targetCounts / (psc + 1)) - 1;
+            
+            // Adjust if exceeds arrWidth-bit limit
+            while (arr > maxARR && psc < 65535) {
+                psc++;
+                arr = Math.round(targetCounts / (psc + 1)) - 1;
+            }
+            
+            return createCodeTemplates({
+                componentName,
+                namingConvention,
+                selectedTimer,
+                selectedChannel,
+                dutyCycle,
+                pwmFreq,
+                arrWidth,
+                sysClock,
+                arrValue: arr,
+                pscValue: psc,
+                presetKey: selectedPreset,
+                servoMinAngle,
+                servoMaxAngle,
+                servoInitialAngle,
+                ledInitialBrightness,
+            });
+        }
+        
         if (!selectedOption) {
             return null;
         }
@@ -56,8 +101,38 @@ export function CubeMxConfiguration({
             sysClock,
             arrValue: selectedOption.arr,
             pscValue: selectedOption.psc,
+            presetKey: selectedPreset,
+            servoMinAngle,
+            servoMaxAngle,
+            servoInitialAngle,
+            ledInitialBrightness,
         });
-    }, [selectedOption, componentName, namingConvention, selectedTimer, selectedChannel, dutyCycle, pwmFreq, arrWidth, sysClock]);
+    }, [selectedOption, componentName, namingConvention, selectedTimer, selectedChannel, dutyCycle, pwmFreq, arrWidth, sysClock, selectedPreset, servoMinAngle, servoMaxAngle, servoInitialAngle, ledInitialBrightness]);
+
+    // Calculate ARR and PSC for display
+    const { arrValue, pscValue } = useMemo(() => {
+        if (selectedPreset === "toggle-pin") {
+            const timerClock = sysClock * 1_000_000;
+            const targetCounts = timerClock / pwmFreq;
+            const maxARR = Math.pow(2, arrWidth) - 1;
+            
+            let psc = 0;
+            let arr = Math.round(targetCounts / (psc + 1)) - 1;
+            
+            while (arr > maxARR && psc < 65535) {
+                psc++;
+                arr = Math.round(targetCounts / (psc + 1)) - 1;
+            }
+            
+            return { arrValue: arr, pscValue: psc };
+        }
+        
+        if (selectedOption) {
+            return { arrValue: selectedOption.arr, pscValue: selectedOption.psc };
+        }
+        
+        return { arrValue: 0, pscValue: 0 };
+    }, [selectedOption, selectedPreset, sysClock, pwmFreq, arrWidth]);
 
     return (
         <div className="mt-8">
@@ -66,7 +141,7 @@ export function CubeMxConfiguration({
                 Configure these settings in your STM32 project to match the calculated PWM parameters above.
             </p>
 
-            {!selectedOption || !templates ? (
+            {!templates ? (
                 <div className="text-center py-8 text-default-500">
                     Please select a PWM resolution above to see the configuration settings.
                 </div>
@@ -78,7 +153,7 @@ export function CubeMxConfiguration({
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center py-1.5 border-b border-default-200 gap-4">
                                     <span className="text-sm text-default-700 flex-shrink">Prescaler (PSC - {arrWidth} bits value)</span>
-                                    <span className="font-mono font-semibold flex-shrink-0">{selectedOption.psc}</span>
+                                    <span className="font-mono font-semibold flex-shrink-0">{pscValue}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-1.5 border-b border-default-200 gap-4">
                                     <span className="text-sm text-default-700 flex-shrink">Counter Mode</span>
@@ -88,7 +163,7 @@ export function CubeMxConfiguration({
                                     <span className="text-sm text-default-700 flex-shrink">
                                         Counter Period (AutoReload Register - {arrWidth} bits value)
                                     </span>
-                                    <span className="font-mono font-semibold flex-shrink-0">{selectedOption.arr}</span>
+                                    <span className="font-mono font-semibold flex-shrink-0">{arrValue}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-1.5 border-b border-default-200 gap-4">
                                     <span className="text-sm text-default-700 flex-shrink">Internal Clock Division (CKD)</span>
@@ -111,7 +186,7 @@ export function CubeMxConfiguration({
                                 <div className="flex justify-between items-center py-1.5 border-b border-default-200 gap-4">
                                     <span className="text-sm text-default-700 flex-shrink">Pulse ({arrWidth} bits value)</span>
                                     <span className="font-mono font-semibold flex-shrink-0">
-                                        {Math.round((dutyCycle / 100) * selectedOption.arr)}
+                                        {Math.round((dutyCycle / 100) * arrValue)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center py-1.5 border-b border-default-200 gap-4">
@@ -263,17 +338,16 @@ export function CubeMxConfiguration({
 }
 
 const formatPreview = (componentName: string, naming: NamingConvention): string => {
-    const basePreview = "Init";
     switch (naming) {
         case "UPPERCASE":
-            return `${componentName.toUpperCase()}_${basePreview}`;
+            return `${componentName.toUpperCase()}_INIT`;
         case "PascalCase":
-            return `${componentName}${basePreview}`;
+            return `${componentName}Init`;
         case "camelCase":
-            return `${componentName.toLowerCase()}${basePreview}`;
+            return `${componentName.toLowerCase()}Init`;
         case "snake_case":
-            return `${componentName.toLowerCase()}_${basePreview.toLowerCase()}`;
+            return `${componentName.toLowerCase()}_init`;
         default:
-            return `${componentName}_${basePreview}`;
+            return `${componentName}_Init`;
     }
 };
