@@ -50,7 +50,8 @@ sleep 3
 # Check if container is running
 if [ "$(sudo docker ps -q -f name=stm32-utilities)" ]; then
     echo "✅ Deployment successful!"
-    echo "🌐 Application is running at: http://localhost:3000"
+    echo "🌐 Application is running and exposed on port 80"
+    echo "   Configure your nginx proxy manager to connect to this container"
     echo ""
     echo "Useful commands:"
     echo "  - View logs: sudo docker compose logs -f"
