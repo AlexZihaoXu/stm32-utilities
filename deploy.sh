@@ -14,6 +14,14 @@ fi
 
 echo "✅ Docker found"
 
+# Build the application locally
+echo "🔨 Building application..."
+if [ ! -d "node_modules" ]; then
+    echo "📦 Installing dependencies..."
+    yarn install
+fi
+yarn build
+
 # Stop and remove existing container if it exists
 if [ "$(sudo docker ps -aq -f name=stm32-utilities)" ]; then
     echo "🔄 Stopping and removing existing container..."
